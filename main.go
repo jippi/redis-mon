@@ -54,7 +54,7 @@ func mon(service *api.CatalogService, stopCh chan interface{}, wg *sync.WaitGrou
 		DB:       0,  // use default DB
 	})
 
-	t := time.NewTicker(100 * time.Millisecond)
+	t := time.NewTicker(10 * time.Millisecond)
 
 	var downSince *time.Time
 	var resyncTime *time.Time
@@ -65,7 +65,7 @@ func mon(service *api.CatalogService, stopCh chan interface{}, wg *sync.WaitGrou
 	for {
 		select {
 		case <-stopCh:
-			fmt.Printf("[%s:%d] role log: %s \n", service.TaggedAddresses["lan"], service.ServicePort, strings.Join(roleLog, " -> "))
+			fmt.Printf("%s [%s:%d] role log: %s \n", time.Now(), service.TaggedAddresses["lan"], service.ServicePort, strings.Join(roleLog, " -> "))
 			return
 
 		case <-t.C:
@@ -83,7 +83,7 @@ func mon(service *api.CatalogService, stopCh chan interface{}, wg *sync.WaitGrou
 					downSince = &n
 				}
 
-				fmt.Printf("[%s:%d] down: %s\n", service.TaggedAddresses["lan"], service.ServicePort, err)
+				fmt.Printf("%s [%s:%d] down: %s\n", time.Now(), service.TaggedAddresses["lan"], service.ServicePort, err)
 				continue
 			}
 
@@ -98,7 +98,7 @@ func mon(service *api.CatalogService, stopCh chan interface{}, wg *sync.WaitGrou
 			}
 			if tr != role {
 				role = tr
-				fmt.Printf("[%s:%d] role change: %s\n", service.TaggedAddresses["lan"], service.ServicePort, role)
+				fmt.Printf("%s [%s:%d] role change: %s\n", time.Now(), service.TaggedAddresses["lan"], service.ServicePort, role)
 				roleLog = append(roleLog, role)
 			}
 
@@ -106,7 +106,7 @@ func mon(service *api.CatalogService, stopCh chan interface{}, wg *sync.WaitGrou
 			if downSince != nil || resyncTime != nil {
 				if resyncTime != nil {
 					if len(is) == 15002 {
-						fmt.Printf("[%s:%d] sync done (sync: %s) \n", service.TaggedAddresses["lan"], service.ServicePort, time.Now().Sub(*resyncTime).String())
+						fmt.Printf("%s [%s:%d] sync done (sync: %s) \n", time.Now(), service.TaggedAddresses["lan"], service.ServicePort, time.Now().Sub(*resyncTime).String())
 						resyncTime = nil
 					}
 
@@ -114,7 +114,7 @@ func mon(service *api.CatalogService, stopCh chan interface{}, wg *sync.WaitGrou
 				}
 
 				if downSince != nil {
-					fmt.Printf("[%s:%d] back up (%s) \n", service.TaggedAddresses["lan"], service.ServicePort, time.Now().Sub(*downSince).String())
+					fmt.Printf("%s [%s:%d] back up (%s) \n", time.Now(), service.TaggedAddresses["lan"], service.ServicePort, time.Now().Sub(*downSince).String())
 					downSince = nil
 
 					n := time.Now()
